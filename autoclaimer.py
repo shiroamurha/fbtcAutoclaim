@@ -8,20 +8,30 @@ class Autoclaimer():
 
     def __init__(self):
         
+
+        self.cookies_ = json.load(
+            open(
+                'cookies.json', 
+                'r'
+            )
+        )
+
         # main worker loop, every 1 hour (3600sec) does the three methods in a row 
         while True:
             
+            i = 1
             self.start_driver()
             self.claim()
             self.close_driver()
-            
-            sleep(3600)
+            print(f'claimed! >{i}<')
+            sleep(3700) # plus 100sec bc driver sometimes (?????) is async
+            i += 1
 
     def start_driver(self):
         
         # page and session (context) initiation 
         self.playwright = sync_playwright().start() 
-        self.browser = self.playwright.webkit.launch()
+        self.browser = self.playwright.chromium.launch(ignore_default_args=["--mute-audio"])
         context = self.browser.new_context()
         self.page = context.new_page()
 
@@ -29,14 +39,7 @@ class Autoclaimer():
         # cookie adding management
         self.page.goto("https://freebitco.in/")
 
-        context.add_cookies(
-            json.load(
-                open(
-                    'cookies.json', 
-                    'r'
-                )
-            )
-        )
+        context.add_cookies(self.cookies_)
         
         # after setting cookies, refreshes the page
         self.page.goto("https://freebitco.in/?op=home")
@@ -65,10 +68,12 @@ class Autoclaimer():
             
         # if any exception, breaks the code and then shows line with exception
         except Exception as e:
-            print(e, ' not able to detect button')
+            pass
+            #print(e, ' not able to detect button')
         
         else:
-            print(roll_button, 'clicked!')
+            #print(roll_button, 'clicked!')
+            pass
     
     def close_driver(self):
         
