@@ -27,8 +27,11 @@ class Autoclaimer():
                 # crashing the OS
 
                 self.start_driver()
-                self.claim()
+                exceptionRaised = self.claim()
                 self.close_driver()
+
+                if not exceptionRaised:
+                    break
 
             print(f'[{datetime.now()}] claimed! >{iterator}< || waiting next', end='')
             iterator += 1
@@ -85,24 +88,30 @@ class Autoclaimer():
             
         # if any exception occurs, write it on log_info.txt (normally timeout exception, 
         # explained on the note inside main worker loop at Autoclaimer().__init__())
+
+        date_now = str(datetime.now())
+        last_log_info = open('log_info.txt', 'r').read()
+
         except Exception as e:
-
-            date_now = str(datetime.now())
-            last_log_info = open('log_info.txt', 'r').read()
-
+            
             open('log_info.txt', 'w').write(
 
                 f"{last_log_info}\n{e} not able to detect button || at {date_now}"
             )
             print(e, f'\n at [{date_now}]')
 
-            pass
+            return True
         
         else:
             #print(roll_button.text_content(), 'clicked!')
 
+            open('log_info.txt', 'w').write(
+
+                f"{last_log_info}\n claimed || at {date_now}"
+            )
+
             # breaks for loop of running methods twice if no exception is raised
-            break
+            return False
     
     def close_driver(self):
         
