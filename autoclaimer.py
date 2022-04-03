@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 from time import sleep
+import cookie_eater
 import json
 
 
@@ -7,31 +8,44 @@ import json
 class Autoclaimer():
 
     def __init__(self):
+
+        # deletes undesirable keys from cookie's dicts, also imports all the cookies from cookies.json
+        self.cookies_ = cookie_eater.cookies_proccessing()
         
-
-        self.cookies_ = json.load(
-            open(
-                'cookies.json', 
-                'r'
-            )
-        )
-
+        iterator = 1
+        
         # main worker loop, every 1 hour (3600sec) does the three methods in a row 
         while True:
             
-            i = 1
-            self.start_driver()
-            self.claim()
-            self.close_driver()
-            print(f'claimed! >{i}<')
-            sleep(3700) # plus 100sec bc driver sometimes (?????) is async
-            i += 1
+            for _ in range(2): 
+
+                # NOTE:
+                # this loop runs claim management methods twice bc sometimes webkit can't resolve the url by timeout 
+                # it is an already recognised bug of webdrivers that could be fixed by just setting wait_for_timeout()
+                # with infinite time amount, but it could cause a lot of other problems like using "infinite" ram then
+                # crashing the OS
+
+                self.start_driver()
+                self.claim()
+                self.close_driver()
+
+            print(f'claimed! >{iterator}< || waiting next', end='')
+            iterator += 1
+
+            for _ in range(4):
+
+                sleep(925) # (3700) plus 100sec bc driver sometimes (?????) is async
+                print('.', end='') # print one dot on the other print above every 1/4 hour (900sec + 25sec from error margin)
+
+
+            print() # just \n 
 
     def start_driver(self):
         
-        # page and session (context) initiation 
+        # page and session (context) initiation
+
         self.playwright = sync_playwright().start() 
-        self.browser = self.playwright.chromium.launch(ignore_default_args=["--mute-audio"])
+        self.browser = self.playwright.webkit.launch(ignore_default_args=["--mute-audio"])
         context = self.browser.new_context()
         self.page = context.new_page()
 
@@ -64,15 +78,18 @@ class Autoclaimer():
                 
                 'input[id="free_play_form_button"]'
                 
-            ).click()
+            )
+
+            roll_button.click()
             
-        # if any exception, breaks the code and then shows line with exception
+        # if any exception occurs, write it on log_info.txt (normally timeout exception, 
+        # explained on the note inside main worker loop at Autoclaimer().__init__())
         except Exception as e:
-            pass
-            #print(e, ' not able to detect button')
+            open('log_info.txt', 'w').write(f"{open('log_info.txt', 'r').read()}\n{e} not able to detect button")
+            print(e)
         
         else:
-            #print(roll_button, 'clicked!')
+            #print(roll_button.text_content(), 'clicked!')
             pass
     
     def close_driver(self):
