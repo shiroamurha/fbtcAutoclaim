@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 from time import sleep
+from datetime import datetime
 import cookie_eater
 import json
 
@@ -29,7 +30,7 @@ class Autoclaimer():
                 self.claim()
                 self.close_driver()
 
-            print(f'claimed! >{iterator}< || waiting next', end='')
+            print(f'[{datetime.now()}] claimed! >{iterator}< || waiting next', end='')
             iterator += 1
 
             for _ in range(4):
@@ -85,8 +86,16 @@ class Autoclaimer():
         # if any exception occurs, write it on log_info.txt (normally timeout exception, 
         # explained on the note inside main worker loop at Autoclaimer().__init__())
         except Exception as e:
-            open('log_info.txt', 'w').write(f"{open('log_info.txt', 'r').read()}\n{e} not able to detect button")
-            print(e)
+
+            date_now = str(datetime.now())
+            last_log_info = open('log_info.txt', 'r').read()
+
+            open('log_info.txt', 'w').write(
+
+                f"{last_log_info}\n{e} not able to detect button || at {date_now}"
+            )
+            
+            print(e, f'\n at [{datetime.now()}]')
         
         else:
             #print(roll_button.text_content(), 'clicked!')
