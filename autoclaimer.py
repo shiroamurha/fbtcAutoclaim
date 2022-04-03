@@ -94,21 +94,25 @@ class Autoclaimer():
 
                 f"{last_log_info}\n{e} not able to detect button || at {date_now}"
             )
-            
-            print(e, f'\n at [{datetime.now()}]')
+            print(e, f'\n at [{date_now}]')
+
+            pass
         
         else:
             #print(roll_button.text_content(), 'clicked!')
-            pass
+
+            # breaks for loop of running methods twice if no exception is raised
+            break
     
     def close_driver(self):
         
         #closes browser and driver
         self.browser.close()
         self.playwright.stop()
-        
-        
-            
+
+
+
+
 if __name__ == '__main__':
     
     # if code is running by its side, then calls autoclaimer class
