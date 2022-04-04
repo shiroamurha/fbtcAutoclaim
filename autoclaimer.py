@@ -13,9 +13,12 @@ class Autoclaimer():
         # deletes undesirable keys from cookie's dicts, also imports all the cookies from cookies.json
         self.cookies_ = cookie_eater.cookies_proccessing()
         
-        iterator = 1
-        
-        # main worker loop, every 1 hour (3600sec) does the three methods in a row 
+        # for counting the cicles of main loop
+        self.iterator = 1
+        one_hour = 61000*60 # actually not one hour, but one hour and one minute, for error margin
+
+
+        # main worker loop, every 1 hour does the three methods in a row 
         while True:
             
             for _ in range(2): 
@@ -23,26 +26,22 @@ class Autoclaimer():
                 # NOTE:
                 # this loop runs claim management methods twice bc sometimes webkit can't resolve the url by timeout 
                 # it is an already recognised bug of webdrivers that could be fixed by just setting wait_for_timeout()
-                # with infinite time amount, but it could cause a lot of other problems like using "infinite" ram then
+                # with infinite time amount, but it could cause a lot of other issues like using "infinite" ram then
                 # crashing the OS
 
                 self.start_driver()
-                exceptionRaised = self.claim()
+                exceptionRaised = self.claim() # returns True if exception is raised, else returns False
                 self.close_driver()
 
+                # if no exception is raised, then do this for loop only once
                 if not exceptionRaised:
                     break
+            
+            self.iterator += 1
 
-            print(f'[{datetime.now()}] claimed! >{iterator}< || waiting next', end='')
-            iterator += 1
-
-            for _ in range(4):
-
-                sleep(925) # (3700) plus 100sec bc driver sometimes (?????) is async
-                print('.', end='') # print one dot on the other print above every 1/4 hour (900sec + 25sec from error margin)
-
-
-            print() # just \n 
+            with sync_playwright().start().webkit.launch().new_page() as p:
+                p.wait_for_timeout(one_hour)
+ 
 
     def start_driver(self):
         
@@ -65,7 +64,9 @@ class Autoclaimer():
     ##
 
     def claim(self):
-        
+
+        last_log_info = open('log_info.txt', 'r').read()
+
         # tries to roll without captcha 
         try:
             
@@ -89,16 +90,14 @@ class Autoclaimer():
         # if any exception occurs, write it on log_info.txt (normally timeout exception, 
         # explained on the note inside main worker loop at Autoclaimer().__init__())
 
-        date_now = str(datetime.now())
-        last_log_info = open('log_info.txt', 'r').read()
 
         except Exception as e:
             
             open('log_info.txt', 'w').write(
 
-                f"{last_log_info}\n{e} not able to detect button || at {date_now}"
+                f"{last_log_info}\n{e} not able to detect button || at {self.date_now()}"
             )
-            print(e, f'\n at [{date_now}]')
+            print(e, f'\n || at [{self.date_now()}]')
 
             return True
         
@@ -107,7 +106,7 @@ class Autoclaimer():
 
             open('log_info.txt', 'w').write(
 
-                f"{last_log_info}\n claimed || at {date_now}"
+                f"{last_log_info}\n claimed || at {self.date_now()}"
             )
 
             # breaks for loop of running methods twice if no exception is raised
@@ -115,10 +114,18 @@ class Autoclaimer():
     
     def close_driver(self):
         
-        #closes browser and driver
+        # logs on console the time that has been claimed
+        print(f'[{self.date_now()}] claimed! >{self.iterator}< || waiting next')
+
+        # closes browser and driver
         self.browser.close()
         self.playwright.stop()
 
+    def date_now(self):
+
+        date = str(datetime.now()) # gets only str from datetime.now()
+
+        return date[0:19] # returns only 19 digits from date, that matches just year-month-day hour-minute-second (with no ms)
 
 
 
