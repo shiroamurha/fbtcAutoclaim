@@ -1,4 +1,1 @@
-Timeout 30000ms exceeded.
-=========================== logs ===========================
-waiting for selector "div#play_without_captchas_button"
-============================================================ not able to detect button
+// all logs (prints and exceptions) from console will be written here
