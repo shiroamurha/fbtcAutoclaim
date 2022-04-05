@@ -10,7 +10,7 @@ class Autoclaimer():
 
     def __init__(self):
 
-        # deletes undesirable keys from cookie's dicts, also imports all the cookies from cookies.json
+        # imports all the cookies from cookies.json deletes, also undesirable keys from cookie's dicts
         self.cookies_ = cookie_eater.cookies_proccessing()
         
         # for counting the cicles of main loop
