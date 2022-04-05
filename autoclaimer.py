@@ -17,6 +17,8 @@ class Autoclaimer():
         self.iterator = 1
         one_hour = 61000*60 # actually not one hour, but one hour and one minute, for error margin
 
+        # starts driver and session context
+        self.start_driver()
 
         # main worker loop, every 1 hour does the three methods in a row 
         while True:
@@ -29,18 +31,28 @@ class Autoclaimer():
                 # with infinite time amount, but it could cause a lot of other issues like using "infinite" ram then
                 # crashing the OS
 
-                self.start_driver()
                 exceptionRaised = self.claim() # returns True if exception is raised, else returns False
-                self.close_driver()
-
+                
                 # if no exception is raised, then do this for loop only once
                 if not exceptionRaised:
                     break
-            
+                    
+            # logs on console the time that has been claimed
+            print(f'[{self.date_now()}] claimed! >{self.iterator}< || waiting next')
             self.iterator += 1
 
-            with sync_playwright().start().webkit.launch().new_page() as p:
-                p.wait_for_timeout(one_hour)
+            try:
+
+                self.page.wait_for_timeout(one_hour)
+
+            except KeyboardInterrupt:
+
+                # if user presses ctrl+C then closes driver 
+                self.close_driver()
+                raise KeyboardInterrupt()
+
+            self.page.reload()
+            
  
 
     def start_driver(self):
@@ -113,9 +125,6 @@ class Autoclaimer():
             return False
     
     def close_driver(self):
-        
-        # logs on console the time that has been claimed
-        print(f'[{self.date_now()}] claimed! >{self.iterator}< || waiting next')
 
         # closes browser and driver
         self.browser.close()
