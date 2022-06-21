@@ -16,8 +16,6 @@
  > Step 1:<br>
 
  - Dump all your cookies from freebitco.in on cookies.json everyday you want to run the code (you can use editthiscookie extension for help doing this)<br>
-_NOTE: remember to delete the cookie dict that has the item "name": "last_play" before running autoclaimer_
-
 >  Step 2<br>
 
  - Run run.bat<br>
